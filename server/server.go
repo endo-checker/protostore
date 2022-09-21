@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
@@ -18,6 +19,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+const defPort = "8080"
+
+// Handler is implemented by a service's grpc 'handler' to register with the
+// server and grpc-gateway mux
 type Server interface {
 	// Permissions is used by the authz interceptor to control access to a method.
 	// permissions.
@@ -39,9 +44,12 @@ type server struct {
 type ServerOption func(*server)
 
 // NewServer creates a new Server instance
-func NewServer(defPort string, opts ...ServerOption) *server {
+func NewServer(opts ...ServerOption) *server {
 	// check to see if Dapr APP_PORT has been set
-	port := defPort
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = defPort
+	}
 
 	// apply options
 	s := server{port: port}
@@ -54,10 +62,7 @@ func NewServer(defPort string, opts ...ServerOption) *server {
 func (s *server) Serve() error {
 	addr := ":" + s.port
 
-	// gRPC server with interceptors
-	grpcSrv := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(),
-	)
+	grpcSrv := grpc.NewServer()
 	defer grpcSrv.Stop()
 	reflection.Register(grpcSrv)
 
@@ -85,7 +90,7 @@ func (s *server) Serve() error {
 
 	// multiplex gRPC and HTTP on same port
 	httpMux := gw.NewServeMux(hm, mo)
-	mux := HttpGrpcMux(httpMux, grpcSrv)
+	mux := httpGrpcMux(httpMux, grpcSrv)
 	httpSrv := &http.Server{
 		Addr:    addr,
 		Handler: h2c.NewHandler(mux, &http2.Server{}),
@@ -113,22 +118,10 @@ func (s *server) Serve() error {
 	return nil
 }
 
-func HttpGrpcMux(httpHandler http.Handler, grpcServer *grpc.Server) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
-			grpcServer.ServeHTTP(w, r)
-		} else {
-			if allowedOrigin(r.Header.Get("Origin")) {
-				w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-				w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-				w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, ResponseType")
-			}
-			if r.Method == "OPTIONS" {
-				return
-			}
-			httpHandler.ServeHTTP(w, r)
-		}
-	})
+func WithAppPort(port string) ServerOption {
+	return func(s *server) {
+		s.port = port
+	}
 }
 
 func WithServer(srv Server) ServerOption {
@@ -147,36 +140,20 @@ func allowedOrigin(origin string) bool {
 	return false
 }
 
-func NewConnection(defPort string) {
-	grpcSrv := grpc.NewServer()
-	defer grpcSrv.Stop()         // stop server on exit
-	reflection.Register(grpcSrv) // for postman
-
-	hm := gw.WithIncomingHeaderMatcher(func(key string) (string, bool) {
-		switch key {
-		case "X-Token-C-Tenant", "X-Token-C-User", "Permissions":
-			return key, true
-		default:
-			return gw.DefaultHeaderMatcher(key)
+func httpGrpcMux(httpHandler http.Handler, grpcServer *grpc.Server) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+			grpcServer.ServeHTTP(w, r)
+		} else {
+			if allowedOrigin(r.Header.Get("Origin")) {
+				w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+				w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+				w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, ResponseType")
+			}
+			if r.Method == "OPTIONS" {
+				return
+			}
+			httpHandler.ServeHTTP(w, r)
 		}
-
 	})
-
-	mo := gw.WithMarshalerOption("*", &gw.JSONPb{
-		MarshalOptions: protojson.MarshalOptions{
-			EmitUnpopulated: false,
-		},
-	})
-	httpMux := gw.NewServeMux(hm, mo)
-
-	mux := HttpGrpcMux(httpMux, grpcSrv)
-	httpSrv := &http.Server{
-		Addr:    ":" + defPort,
-		Handler: h2c.NewHandler(mux, &http2.Server{}),
-	}
-
-	if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
-		return
-	}
-	// return defPort
 }
