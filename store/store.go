@@ -39,3 +39,4 @@ func Connect(i, dbName, collName string) Store {
 		coll: db.Collection(collName),
 	}
 }
+
