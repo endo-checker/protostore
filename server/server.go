@@ -24,9 +24,6 @@ const defPort = "8080"
 // Handler is implemented by a service's grpc 'handler' to register with the
 // server and grpc-gateway mux
 type Server interface {
-	// Permissions is used by the authz interceptor to control access to a method.
-	// permissions.
-	Permissions(method string) []string
 	// RegisterGRPC registers a service's handler (server) with the gRPC server.
 	RegisterGRPC(srv *grpc.Server, h interface{})
 	// RegisterHTTP registers http servers for a service using a grpc-gateway
