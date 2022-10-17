@@ -27,7 +27,7 @@ func HttpGrpcMux(httpHandler http.Handler, grpcServer *grpc.Server) http.Handler
 		} else {
 			if allowedOrigin(r.Header.Get("Origin")) {
 				w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-				w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE")
+				w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, PATCH, OPTIONS")
 				w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, ResponseType")
 			}
 			if r.Method == "OPTIONS" {
