@@ -1,27 +1,21 @@
 package store
 
 import (
-	"context"
-	"log"
-
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.starlark.net/lib/proto"
 )
 
-type Store struct {
+type Store[T proto.Message] struct {
+	protoField string
+	audit      bool
+
 	locaColl *mongo.Collection
 }
 
-func Connect(mongoUri string, dbGroup string, dbColl string) Store {
-	clientOptions := options.Client().ApplyURI(mongoUri)
-	client, err := mongo.Connect(context.Background(), clientOptions)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db := client.Database(dbGroup)
-
-	return Store{
-		locaColl: db.Collection(dbColl),
+func NewStore[T proto.Message](protoField string, audit bool, locaColl *mongo.Collection) Store[T] {
+	return Store[T]{
+		protoField: protoField,
+		audit:      audit,
+		locaColl:   locaColl,
 	}
 }
