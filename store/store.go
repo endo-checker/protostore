@@ -25,7 +25,6 @@ func (s Store[T]) Create(ctx context.Context, msg T) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return err
 }
 
