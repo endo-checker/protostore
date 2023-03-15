@@ -2,40 +2,55 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"log"
-	"os"
 
-	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Store struct {
-	coll *mongo.Collection
+type Storer interface {
+	Create(ctx context.Context, ent struct{}) error
+	Get(ctx context.Context, id string) (struct{}, error)
+	Update(id string, ctx context.Context, ent struct{}) error
+	Delete(id string) error
 }
 
-// retrives environment variables
-func LoadEnv(env string) (uri string) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file ")
-	}
-	uri = os.Getenv(env)
-	return uri
-}
-
-func Connect(i, dbName, collName string) Store {
-	uri := LoadEnv(i)
-
-	clientOptions := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(context.Background(), clientOptions)
+func (s Store) Create(ctx context.Context, ent struct{}) error {
+	_, err := s.locaColl.InsertOne(ctx, ent)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db := client.Database(dbName)
+	return err
+}
 
-	return Store{
-		coll: db.Collection(collName),
+func (s Store) Get(ctx context.Context, id string) (struct{}, error) {
+	var ent struct{}
+
+	if err := s.locaColl.FindOne(context.Background(), bson.M{"id": id}).Decode(ent); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return ent, err
+		}
+		return ent, err
 	}
+
+	return ent, nil
+}
+
+func (s Store) Update(id string, ctx context.Context, ent struct{}) error {
+	insertResult, err := s.locaColl.ReplaceOne(ctx, bson.M{"id": id}, ent)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("\nInserted a Single Document: %v\n", insertResult)
+
+	return err
+}
+
+func (s Store) Delete(id string) error {
+	if _, err := s.locaColl.DeleteOne(context.Background(), bson.M{"id": id}); err != nil {
+		return err
+	}
+	return nil
 }
