@@ -14,7 +14,7 @@ import (
 
 type Storer[T proto.Message] interface {
 	Create(ctx context.Context, msg T) error
-	Query(ctx context.Context, qr ...listOption) ([]T, int64, error)
+	List(ctx context.Context, opts ...listOption) ([]T, int64, error)
 	Get(ctx context.Context, id string) (*T, error)
 	Update(id string, ctx context.Context, u *T) error
 	Delete(id string) error
@@ -47,7 +47,7 @@ func (l *listOption) apply(lo *listOptions) {
 }
 
 // List returns a list of documents matching the filter provided.
-func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, error) {
+func (s Store[T]) List(ctx context.Context, opts ...listOption) ([]T, int64, error) {
 	lo := listOptions{}
 	for _, opt := range opts {
 		opt.apply(&lo)
