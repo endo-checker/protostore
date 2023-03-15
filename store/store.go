@@ -9,14 +9,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.starlark.net/lib/proto"
-	pb "google.golang.org/protobuf/types/known/anypb"
 )
 
 type Storer[T proto.Message] interface {
 	Create(ctx context.Context, msg T) error
 	List(ctx context.Context, opts ...listOption) ([]T, int64, error)
-	Get(ctx context.Context, id string) (*T, error)
-	Update(id string, ctx context.Context, u *T) error
+	Get(ctx context.Context, id string) (T, error)
+	Update(id string, ctx context.Context, u T) error
 	Delete(id string) error
 }
 
@@ -78,8 +77,8 @@ func (s Store[T]) List(ctx context.Context, opts ...listOption) ([]T, int64, err
 	return docs, matches, nil
 }
 
-func (s Store[T]) Get(ctx context.Context, id string) (*pb.Any, error) {
-	var msg *pb.Any
+func (s Store[T]) Get(ctx context.Context, id string) (T, error) {
+	var msg T
 
 	if err := s.locaColl.FindOne(context.Background(), bson.M{"id": id}).Decode(msg); err != nil {
 		if err == mongo.ErrNoDocuments {
