@@ -1,7 +1,11 @@
 package store
 
 import (
+	"context"
+	"log"
+
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.starlark.net/lib/proto"
 )
 
@@ -18,4 +22,18 @@ func NewStore[T proto.Message](protoField string, audit bool, locaColl *mongo.Co
 		audit:      audit,
 		locaColl:   locaColl,
 	}
+}
+
+func Connect(uri, coll string) error {
+
+	clientOptions := options.Client().ApplyURI(uri)
+	client, err := mongo.Connect(context.Background(), clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db := client.Database("info")
+	db.Collection(coll)
+
+	return nil
 }
