@@ -3,7 +3,6 @@ module github.com/endo-checker/common
 go 1.20
 
 require (
-	github.com/joho/godotenv v1.5.1
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/rs/cors v1.8.3
 	github.com/spf13/viper v1.15.0
