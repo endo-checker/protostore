@@ -7,16 +7,17 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	pb "google.golang.org/protobuf/types/known/anypb"
 )
 
 type Storer interface {
-	Create(ctx context.Context, ent struct{}) error
-	Get(ctx context.Context, id string) (struct{}, error)
-	Update(id string, ctx context.Context, ent struct{}) error
+	Create(ctx context.Context, ent pb.Any) error
+	Get(ctx context.Context, id string) (*pb.Any, error)
+	Update(id string, ctx context.Context, ent *pb.Any) error
 	Delete(id string) error
 }
 
-func (s Store) Create(ctx context.Context, ent struct{}) error {
+func (s Store) Create(ctx context.Context, ent pb.Any) error {
 	_, err := s.locaColl.InsertOne(ctx, ent)
 	if err != nil {
 		log.Fatal(err)
@@ -25,8 +26,8 @@ func (s Store) Create(ctx context.Context, ent struct{}) error {
 	return err
 }
 
-func (s Store) Get(ctx context.Context, id string) (struct{}, error) {
-	var ent struct{}
+func (s Store) Get(ctx context.Context, id string) (*pb.Any, error) {
+	var ent *pb.Any
 
 	if err := s.locaColl.FindOne(context.Background(), bson.M{"id": id}).Decode(ent); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -38,7 +39,7 @@ func (s Store) Get(ctx context.Context, id string) (struct{}, error) {
 	return ent, nil
 }
 
-func (s Store) Update(id string, ctx context.Context, ent struct{}) error {
+func (s Store) Update(id string, ctx context.Context, ent *pb.Any) error {
 	insertResult, err := s.locaColl.ReplaceOne(ctx, bson.M{"id": id}, ent)
 	if err != nil {
 		log.Fatal(err)
