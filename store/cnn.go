@@ -6,7 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.starlark.net/lib/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type Store[T proto.Message] struct {

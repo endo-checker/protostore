@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.starlark.net/lib/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type Storer[T proto.Message] interface {
