@@ -15,8 +15,8 @@ type Storer[T proto.Message] interface {
 	Create(ctx context.Context, msg T) error
 	List(ctx context.Context, opts ...listOption) ([]T, int64, error)
 	Get(ctx context.Context, id string) (T, error)
-	Update(id string, ctx context.Context, u T) error
-	Delete(id string) error
+	Update(ctx context.Context, id string, u T) error
+	Delete(ctx context.Context, id string) error
 }
 
 func (s Store[T]) Create(ctx context.Context, msg T) error {
@@ -90,7 +90,7 @@ func (s Store[T]) Get(ctx context.Context, id string) (T, error) {
 	return msg, nil
 }
 
-func (s Store[T]) Update(id string, ctx context.Context, u *T) error {
+func (s Store[T]) Update(ctx context.Context, id string, u T) error {
 	insertResult, err := s.locaColl.ReplaceOne(ctx, bson.M{"id": id}, u)
 	if err != nil {
 		log.Fatal(err)
@@ -100,7 +100,7 @@ func (s Store[T]) Update(id string, ctx context.Context, u *T) error {
 	return err
 }
 
-func (s Store[T]) Delete(id string) error {
+func (s Store[T]) Delete(ctx context.Context, id string) error {
 	if _, err := s.locaColl.DeleteOne(context.Background(), bson.M{"id": id}); err != nil {
 		return err
 	}
