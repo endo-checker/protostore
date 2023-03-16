@@ -12,7 +12,7 @@ import (
 
 type Store[T proto.Message] struct {
 	locaColl *mongo.Collection
-	Fetcher  func() T
+	// Fetcher  func() T
 }
 
 // add your mongo uri, and collection name
@@ -33,6 +33,5 @@ func Connect[T proto.Message](uri string) *Store[T] {
 
 	return &Store[T]{
 		locaColl: db.Collection(pbName),
-		Fetcher:  func() T { return *new(T) },
 	}
 }
