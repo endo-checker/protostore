@@ -27,6 +27,7 @@ func (s Store[T]) Create(ctx context.Context, msg T) error {
 	return err
 }
 
+
 type listOptions struct {
 	findOpts options.FindOptions
 	filter   bson.M
@@ -75,6 +76,7 @@ func (s Store[T]) List(ctx context.Context, opts ...listOption) ([]T, int64, err
 	for _, opt := range opts {
 		opt.apply(&lo)
 	}
+	
 
 	if lo.findOpts.Limit == nil || *lo.findOpts.Limit == 0 {
 		var lim int64 = 50
