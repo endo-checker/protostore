@@ -43,7 +43,7 @@ func NewStore[T proto.Message](opts ...StoreOption) *Store[T] {
 	}
 }
 
-func Connect(uri, coll string) error {
+func Connect(uri, coll string) {
 
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.Background(), clientOptions)
@@ -53,6 +53,4 @@ func Connect(uri, coll string) error {
 
 	db := client.Database("info")
 	db.Collection(coll)
-
-	return nil
 }
