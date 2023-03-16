@@ -13,6 +13,9 @@ type Store[T proto.Message] struct {
 	locaColl *mongo.Collection
 }
 
+// add your mongo uri, and collection name
+// connect to your proto.Message type
+// e.g. store.Connect[*proto.Message]("mongodb://localhost:27017", "info")
 func Connect[T proto.Message](uri, coll string) Store[T] {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.Background(), clientOptions)

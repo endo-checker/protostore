@@ -80,7 +80,7 @@ func (s Store[T]) List(ctx context.Context, opts ...listOption) ([]T, int64, err
 func (s Store[T]) Get(ctx context.Context, id string) (T, error) {
 	var msg T
 
-	if err := s.locaColl.FindOne(context.Background(), bson.M{"id": id}).Decode(msg); err != nil {
+	if err := s.locaColl.FindOne(ctx, bson.M{"id": id}).Decode(msg); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return msg, err
 		}
@@ -101,7 +101,7 @@ func (s Store[T]) Update(ctx context.Context, id string, u T) error {
 }
 
 func (s Store[T]) Delete(ctx context.Context, id string) error {
-	if _, err := s.locaColl.DeleteOne(context.Background(), bson.M{"id": id}); err != nil {
+	if _, err := s.locaColl.DeleteOne(ctx, bson.M{"id": id}); err != nil {
 		return err
 	}
 	return nil

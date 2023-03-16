@@ -18,7 +18,7 @@ func setCORS() *cors.Cors {
 	return c
 }
 
-// connect handler setup
+// connect handler setup, need to initiate http.ServeMux as well as variables
 func (s Server) ConnectServer(path string, h http.Handler, port string) {
 	c := setCORS()
 
