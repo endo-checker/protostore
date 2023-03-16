@@ -10,8 +10,8 @@ import (
 )
 
 type Store[T proto.Message] struct {
-	locaColl   *mongo.Collection
-	protoField string
+	locaColl *mongo.Collection
+	// protoField string
 }
 
 // add your mongo uri, and collection name
