@@ -19,7 +19,7 @@ func setCORS() *cors.Cors {
 }
 
 // connect handler setup
-func ConnectServer(path string, h http.Handler, port string) {
+func (s Server) ConnectServer(path string, h http.Handler, port string) {
 	c := setCORS()
 
 	mux := http.NewServeMux()
@@ -31,4 +31,8 @@ func ConnectServer(path string, h http.Handler, port string) {
 		port,
 		h2c.NewHandler(handler, &http2.Server{}),
 	)
+}
+
+type Server struct {
+	*http.ServeMux
 }
