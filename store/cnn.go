@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+
 type Store[T proto.Message] struct {
 	locaColl *mongo.Collection
 }
