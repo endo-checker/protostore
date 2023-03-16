@@ -44,7 +44,6 @@ func NewStore[T proto.Message](opts ...StoreOption) *Store[T] {
 }
 
 func Connect(uri, coll string) {
-
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
