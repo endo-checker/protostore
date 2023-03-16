@@ -43,7 +43,7 @@ type Store[T proto.Message] struct {
 // 	}
 // }
 
-func Connect(uri, coll string) {
+func Connect[T proto.Message](uri, coll string) *Store[T] {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
@@ -52,4 +52,8 @@ func Connect(uri, coll string) {
 
 	db := client.Database("info")
 	db.Collection(coll)
+
+	return &Store[T]{
+		locaColl: db.Collection(coll),
+	}
 }
