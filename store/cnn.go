@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"log"
-	"strings"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,22 +17,22 @@ type Store[T proto.Message] struct {
 // add your mongo uri, and collection name
 // connect to your proto.Message type
 // e.g. store.Connect[*proto.Message]("mongodb://localhost:27017", "info")
-func Connect[T proto.Message](uri string) Store[T] {
+func Connect[T proto.Message](uri, collName string) Store[T] {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	msg := *new(T)
-	pbName := string(msg.ProtoReflect().Descriptor().Name())
-	pbName = strings.ToLower(pbName)
+	// msg := *new(T)
+	// pbName := string(msg.ProtoReflect().Descriptor().Name())
+	// pbName = strings.ToLower(pbName)
 
 	db := client.Database("info")
-	db.Collection(pbName)
+	db.Collection(collName)
 
 	return Store[T]{
-		locaColl:   db.Collection(pbName),
-		protoField: pbName,
+		locaColl: db.Collection(collName),
+		// protoField: pbName,
 	}
 }
