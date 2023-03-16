@@ -10,9 +10,9 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-
 type Store[T proto.Message] struct {
-	locaColl *mongo.Collection
+	locaColl   *mongo.Collection
+	protoField string
 }
 
 // add your mongo uri, and collection name
@@ -33,6 +33,7 @@ func Connect[T proto.Message](uri string) Store[T] {
 	db.Collection(pbName)
 
 	return Store[T]{
-		locaColl: db.Collection(pbName),
+		locaColl:   db.Collection(pbName),
+		protoField: pbName,
 	}
 }
