@@ -71,7 +71,11 @@ func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, err
 		opt.apply(&lo)
 	}
 
-	filter := bson.M{}
+	filter := bson.M{
+		"$and": bson.A{
+			bson.M{"id": bson.M{"$exists": true}},
+		},
+	}
 	if len(lo.filter) > 0 {
 		filter = bson.M{"$and": bson.A{filter, lo.filter}}
 	}
