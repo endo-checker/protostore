@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -36,11 +35,6 @@ type listOptions struct {
 type ListOption interface {
 	apply(*listOptions)
 }
-
-// CustomListOption can be embedded in a struct to support creation of custom ListOptions.
-type CustomListOption struct{}
-
-func (CustomListOption) apply(*listOptions) {}
 
 type listOption struct {
 	applyFunc func(*listOptions)
@@ -118,12 +112,10 @@ func (s Store[T]) Get(ctx context.Context, id string) (T, error) {
 }
 
 func (s Store[T]) Update(ctx context.Context, id string, u T) error {
-	insertResult, err := s.locaColl.ReplaceOne(ctx, bson.M{"id": id}, u)
+	_, err := s.locaColl.ReplaceOne(ctx, bson.M{"id": id}, u)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("\nInserted a Single Document: %v\n", insertResult)
-
 	return err
 }
 
