@@ -71,12 +71,14 @@ func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, err
 		opt.apply(&lo)
 	}
 
+	filter := bson.M{}
+	if len(lo.filter) > 0 {
+		filter = bson.M{"$and": bson.A{filter, lo.filter}}
+	}
 	if lo.findOpts.Limit == nil || *lo.findOpts.Limit == 0 {
 		var lim int64 = 50
 		lo.findOpts.Limit = &lim
 	}
-
-	filter := lo.filter
 
 	cursor, err := s.locaColl.Find(ctx, &lo.findOpts)
 	if err != nil {
