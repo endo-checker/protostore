@@ -8,15 +8,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
 type Storer[T proto.Message] interface {
 	Create(ctx context.Context, msg T) error
 	List(ctx context.Context, opts ...listOption) ([]T, int64, error)
-	Get(ctx context.Context, id string) (T, error)
+	Get(ctx context.Context, id string) (*T, error)
 	Update(ctx context.Context, id string, u T) error
 	Delete(ctx context.Context, id string) error
 }
@@ -105,21 +103,18 @@ func (s Store[T]) List(ctx context.Context, opts ...listOption) ([]T, int64, err
 }
 
 // Get retrieves a document by its unique id.
-func (s Store[T]) Get(ctx context.Context, id string) (T, error) {
-	filter := bson.M{"$and": bson.A{
+func (s Store[T]) Get(ctx context.Context, id string) (*T, error) {
 
-		bson.M{s.protoField + ".id": id},
-	}}
+	var msg T
 
-	var t T
-	if err := s.locaColl.FindOne(ctx, filter).Decode(&t); err != nil {
+	if err := s.locaColl.FindOne(context.Background(), bson.M{"id": id}).Decode(&msg); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return t, status.Errorf(codes.NotFound, "no document found for id %s", id)
+			return &msg, err
 		}
-		return t, err
+		return &msg, err
 	}
 
-	return t, nil
+	return &msg, nil
 }
 
 func (s Store[T]) Update(ctx context.Context, id string, u T) error {
