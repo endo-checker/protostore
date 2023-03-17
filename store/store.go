@@ -8,6 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -102,17 +104,22 @@ func (s Store[T]) List(ctx context.Context, opts ...listOption) ([]T, int64, err
 	return docs, matches, nil
 }
 
+// Get retrieves a document by its unique id.
 func (s Store[T]) Get(ctx context.Context, id string) (T, error) {
-	var msg T
+	filter := bson.M{"$and": bson.A{
 
-	if err := s.locaColl.FindOne(ctx, bson.M{"id": id}).Decode(msg); err != nil {
+		bson.M{s.protoField + ".id": id},
+	}}
+
+	var t T
+	if err := s.locaColl.FindOne(ctx, filter).Decode(&t); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return msg, err
+			return t, status.Errorf(codes.NotFound, "no document found for id %s", id)
 		}
-		return msg, err
+		return t, err
 	}
 
-	return msg, nil
+	return t, nil
 }
 
 func (s Store[T]) Update(ctx context.Context, id string, u T) error {
@@ -126,7 +133,7 @@ func (s Store[T]) Update(ctx context.Context, id string, u T) error {
 }
 
 func (s Store[T]) Delete(ctx context.Context, id string) error {
-	if _, err := s.locaColl.DeleteOne(ctx, bson.M{"id": id}); err != nil {
+	if _, err := s.locaColl.DeleteOne(context.Background(), bson.M{"id": id}); err != nil {
 		return err
 	}
 	return nil
