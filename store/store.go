@@ -65,7 +65,7 @@ func WithFilter(f bson.M) ListOption {
 }
 
 // List returns a list of documents matching the filter provided.
-func (s Store[T]) List(ctx context.Context, opts ...listOption) ([]T, int64, error) {
+func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, error) {
 	lo := listOptions{}
 	for _, opt := range opts {
 		opt.apply(&lo)
