@@ -18,7 +18,7 @@ type Store[T proto.Message] struct {
 // add your mongo uri, and collection name
 // connect to your proto.Message type
 // e.g. store.Connect[*proto.Message]("mongodb://localhost:27017", "info")
-func Connect[T proto.Message](uri string, opts ...ClientOption) error {
+func Connect[T proto.Message](uri string) error {
 
 	var err error
 
