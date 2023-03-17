@@ -12,7 +12,7 @@ import (
 
 type Storer[T proto.Message] interface {
 	Create(ctx context.Context, msg T) error
-	List(ctx context.Context, opts ...listOption) ([]T, int64, error)
+	List(ctx context.Context, opts ...ListOption) ([]T, int64, error)
 	Get(ctx context.Context, id string) (T, error)
 	Update(ctx context.Context, id string, u T) error
 	Delete(ctx context.Context, id string) error
