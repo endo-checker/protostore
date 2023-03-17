@@ -37,3 +37,39 @@ func Connect[T proto.Message](uri string) Store[T] {
 		protoField: pbName,
 	}
 }
+
+// clientOpts is used to pass data the ClientOption function
+type clientOpts struct {
+	app string
+
+	db *mongo.Database
+}
+
+// ClientOption is used to pass optional arguments when creating a Client.
+type ClientOption func(*clientOpts) error
+
+// App is the name of the Mongo App to connect to .
+func WithApp(a string) ClientOption {
+	return func(c *clientOpts) error {
+		c.app = a
+		return nil
+	}
+}
+
+// set reference to Mongo database
+func (s *Store[T]) setDB(db *mongo.Database) error {
+
+	// apply configuration (indexes, etc.)
+
+	s.locaColl = db.Collection(s.protoField)
+
+	// track data changes for auditing purposes
+	return nil
+}
+
+// WithStore adds a Store reference to the client.
+func WithStore[T proto.Message](s *Store[T]) ClientOption {
+	return func(c *clientOpts) error {
+		return s.setDB(c.db)
+	}
+}

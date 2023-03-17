@@ -76,6 +76,8 @@ func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, err
 		lo.findOpts.Limit = &lim
 	}
 
+	filter := lo.filter
+
 	cursor, err := s.locaColl.Find(ctx, &lo.findOpts)
 	if err != nil {
 		return nil, 0, err
@@ -88,7 +90,7 @@ func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, err
 	}
 
 	// count of all matching docs
-	matches, err := s.locaColl.CountDocuments(ctx, lo.filter)
+	matches, err := s.locaColl.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
