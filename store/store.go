@@ -38,8 +38,9 @@ type ListOption interface {
 }
 
 // CustomListOption can be embedded in a struct to support creation of custom ListOptions.
-// type CustomListOption struct{}
-// func (CustomListOption) apply(*listOptions) {}
+type CustomListOption struct{}
+
+func (CustomListOption) apply(*listOptions) {}
 
 type listOption struct {
 	applyFunc func(*listOptions)
@@ -49,25 +50,25 @@ func (l *listOption) apply(lo *listOptions) {
 	l.applyFunc(lo)
 }
 
-// func newListOption(fn func(*listOptions)) *listOption {
-// 	return &listOption{applyFunc: fn}
-// }
+func newListOption(fn func(*listOptions)) *listOption {
+	return &listOption{applyFunc: fn}
+}
 
-// // WithFindOptions can be used to provide *options.FindOptions for use
-// // in a collection.Find operation.
-// func WithFindOptions(fo options.FindOptions) ListOption {
-// 	return newListOption(func(l *listOptions) {
-// 		l.findOpts = fo
-// 	})
-// }
+// WithFindOptions can be used to provide *options.FindOptions for use
+// in a collection.Find operation.
+func WithFindOptions(fo options.FindOptions) ListOption {
+	return newListOption(func(l *listOptions) {
+		l.findOpts = fo
+	})
+}
 
-// // WithFilter can be used to provide an optional filter for use in a collection.Find
-// // operation.
-// func WithFilter(f bson.M) ListOption {
-// 	return newListOption(func(l *listOptions) {
-// 		l.filter = f
-// 	})
-// }
+// WithFilter can be used to provide an optional filter for use in a collection.Find
+// operation.
+func WithFilter(f bson.M) ListOption {
+	return newListOption(func(l *listOptions) {
+		l.filter = f
+	})
+}
 
 // List returns a list of documents matching the filter provided.
 func (s Store[T]) List(ctx context.Context, opts ...listOption) ([]T, int64, error) {
