@@ -65,15 +65,12 @@ func WithFilter(f bson.M) ListOption {
 }
 
 // List returns a list of documents matching the filter provided.
-func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, error) {
+func (s Store[T]) List(ctx context.Context, filter bson.M, opts ...ListOption) ([]T, int64, error) {
 	lo := listOptions{}
 	for _, opt := range opts {
 		opt.apply(&lo)
 	}
 
-	// if len(lo.filter) > 0 {
-	// 	filter = bson.M{"$and": bson.A{filter, lo.filter}}
-	// }
 	if lo.findOpts.Limit == nil || *lo.findOpts.Limit == 0 {
 		var lim int64 = 50
 		lo.findOpts.Limit = &lim
@@ -91,7 +88,7 @@ func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, err
 	}
 
 	// count of all matching docs
-	matches, err := s.locaColl.CountDocuments(ctx, lo.filter)
+	matches, err := s.locaColl.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
