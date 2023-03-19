@@ -65,13 +65,13 @@ func WithFilter(f bson.M) ListOption {
 }
 
 // List returns a list of documents matching the filter provided.
-func (s Store[T]) List(ctx context.Context, filter bson.M, opts ...ListOption) ([]T, int64, error) {
+func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, error) {
 	lo := listOptions{}
 	for _, opt := range opts {
 		opt.apply(&lo)
 	}
 
-	// filter := bson.M{}
+	filter := bson.M{}
 	if lo.findOpts.Limit == nil || *lo.findOpts.Limit == 0 {
 		var lim int64 = 50
 		lo.findOpts.Limit = &lim
