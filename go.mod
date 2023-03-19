@@ -1,4 +1,4 @@
-module github.com/endo-checker/common
+module github.com/endo-checker/protostore
 
 go 1.20
 
