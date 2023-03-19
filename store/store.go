@@ -72,6 +72,7 @@ func (s Store[T]) List(ctx context.Context, opts ...ListOption) ([]T, int64, err
 	}
 
 	filter := bson.M{}
+
 	if lo.findOpts.Limit == nil || *lo.findOpts.Limit == 0 {
 		var lim int64 = 50
 		lo.findOpts.Limit = &lim
