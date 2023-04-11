@@ -1,14 +1,9 @@
 package server
 
 import (
-	"context"
 	"fmt"
 
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/rs/cors"
 	"golang.org/x/net/http2"
@@ -23,7 +18,7 @@ type Server struct {
 func newCorsHandler() (*cors.Cors, error) {
 	return cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowedMethods:   []string{"POST", "OPTIONS"},
 		AllowCredentials: true,
 		MaxAge:           300,
@@ -37,7 +32,7 @@ func listenServe(srv *http.Server) error {
 	return nil
 }
 
-func (s *Server) ConnectServer(ctx context.Context, path string, h http.Handler, port string) error {
+func (s *Server) ConnectServer(path string, h http.Handler, port string) error {
 	c, err := newCorsHandler()
 	if err != nil {
 		return fmt.Errorf("failed to set CORS: %v", err)
@@ -52,33 +47,6 @@ func (s *Server) ConnectServer(ctx context.Context, path string, h http.Handler,
 	}
 
 	go listenServe(srv)
-
-	// Graceful shutdown
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
-	// Wait for a signal
-	select {
-	case <-ctx.Done():
-		fmt.Println("shutting down server...")
-		// Give the server 5 seconds to gracefully shutdown
-		ctxShutdown, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		if err := srv.Shutdown(ctxShutdown); err != nil {
-			return fmt.Errorf("failed to gracefully shutdown server: %v", err)
-		}
-
-	case sig := <-quit:
-		fmt.Printf("received signal %s", sig)
-		// Give the server 5 seconds to gracefully shutdown
-		ctxShutdown, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		if err := srv.Shutdown(ctxShutdown); err != nil {
-			return fmt.Errorf("failed to gracefully shutdown server: %v", err)
-		}
-	}
 
 	return nil
 }
