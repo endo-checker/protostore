@@ -19,7 +19,6 @@ type Store[T proto.Message] struct {
 // connect to your proto.Message type
 // e.g. store.Connect[*proto.Message]("mongodb://localhost:27017", "info")
 func Connect[T proto.Message](uri string, opts ...ClientOption) Store[T] {
-
 	var err error
 
 	clientOptions := options.Client().ApplyURI(uri)
@@ -44,7 +43,6 @@ func Connect[T proto.Message](uri string, opts ...ClientOption) Store[T] {
 // clientOpts is used to pass data the ClientOption function
 type clientOpts struct {
 	app string
-
 	db *mongo.Database
 }
 
@@ -61,9 +59,7 @@ func WithApp(a string) ClientOption {
 
 // set reference to Mongo database
 func (s *Store[T]) setDB(db *mongo.Database) error {
-
 	// apply configuration (indexes, etc.)
-
 	s.locaColl = db.Collection(s.protoField)
 
 	// track data changes for auditing purposes

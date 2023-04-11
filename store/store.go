@@ -105,7 +105,7 @@ func (s Store[T]) Get(ctx context.Context, id string) (T, error) {
 
 	var msg T
 
-	if err := s.locaColl.FindOne(context.Background(), bson.M{"id": id}).Decode(&msg); err != nil {
+	if err := s.locaColl.FindOne(ctx, bson.M{"id": id}).Decode(&msg); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return msg, err
 		}
