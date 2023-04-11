@@ -3,13 +3,13 @@ module github.com/endo-checker/protostore
 go 1.20
 
 require (
-	github.com/rs/cors v1.8.3
+	github.com/gorilla/mux v1.8.0
 	go.mongodb.org/mongo-driver v1.11.4
-	golang.org/x/net v0.9.0
 	google.golang.org/protobuf v1.30.0
 )
 
 require (
+	github.com/go-chi/chi v1.5.4
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
