@@ -3,8 +3,9 @@ module github.com/endo-checker/protostore
 go 1.20
 
 require (
-	github.com/gorilla/mux v1.8.0
+	github.com/rs/cors v1.8.3
 	go.mongodb.org/mongo-driver v1.11.2
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	google.golang.org/protobuf v1.30.0
 )
 

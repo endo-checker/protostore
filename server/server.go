@@ -3,53 +3,50 @@ package server
 import (
 	"fmt"
 	"log"
-
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
+// Server represents a HTTP server with CORS support
 type Server struct {
 	*http.ServeMux
 }
 
-func cors(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-		w.Header().Set("Access-Control-Allow-Methods", "POST")
-		w.Header().Set("Access-Control-Allow-Headers", "Connect-Protocol-Version,Accept,Authorization,Content-Type,X-CSRF-Token")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Max-Age", "300")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+// newCorsHandler creates a new CORS handler
+func newCorsHandler() (*cors.Cors, error) {
+	return cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedMethods:   []string{"POST", "OPTIONS"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}), nil
 }
 
-func listenServe(srv *http.Server) error {
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		return fmt.Errorf("failed to start server: %v", err)
+// listenAndServe starts the HTTP server and listens for incoming requests
+func (s *Server) listenAndServe(port string) error {
+	log.Printf("Server listening on port %s\n", port)
+	err := http.ListenAndServe(port, h2c.NewHandler(s, &http2.Server{}))
+	if err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("failed to start server on port %s: %v", port, err)
 	}
 	return nil
 }
 
+// ConnectServer connects a HTTP handler to a server and starts listening for requests
 func (s *Server) ConnectServer(path string, h http.Handler, port string) error {
-	r := mux.NewRouter()
-	r.Use(cors)
-	r.Handle(path, h).Methods(http.MethodPost, http.MethodOptions)
-
-	srv := &http.Server{
-		Addr:    port,
-		Handler: r,
+	c, err := newCorsHandler()
+	if err != nil {
+		return err
 	}
 
-	if err := listenServe(srv); err != nil {
-		log.Fatal(err)
-	}
-	listenServe(srv)
+	s.ServeMux = http.NewServeMux()
+	s.Handle(path, c.Handler(h))
+
+	go s.listenAndServe(port)
 
 	return nil
 }
